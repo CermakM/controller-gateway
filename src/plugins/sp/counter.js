@@ -8,44 +8,47 @@
  *      List of regex pattern for columns containing cards with story points to count
  */
 
-function getSPFromCardName(card) {
-	const p = /\((\d+)\)/
-	const m = card.match(p)
-	if (m)
-		return Number(m[1])
-
-	return 0
-}
-
-function setColumnName(id, name) {
-	Trello.put(`/lists/${id}`, {
-		name: name
-	})
-}
-
-
-COLUMN_REGEX = typeof COLUMN_REGEX !== 'undefined' ? COLUMN_REGEX : [/^Completed.*/, /^Next.*/, /^In Progress.*/]
+COLUMN_REGEX = typeof COLUMN_REGEX !== 'undefined' ? COLUMN_REGEX : [/^Completed.*/, /^Next.*/, /^In Progress.*/];
 
 (function() {
 
-	Trello.board.get().then((board)=>{
+    function getSPFromCardName(card) {
+        const p = /\((\d+)\)/
+        const m = card.match(p)
+        if (m)
+            return Number(m[1])
 
-		const lists = board.lists
+        return 0
+    }
 
-		lists.forEach(async(list)=>{
-			if (list.closed || !COLUMN_REGEX.some(p=>p.test(list.name)))
-				return
+    function setColumnName(id, name) {
+        Trello.put(`/lists/${id}`, {
+            name: name
+        })
+    }
 
-			const cards = await Trello.lists.get(`${list.id}/cards`)
-			const storyPoints = cards.map(card=>Number(getSPFromCardName(card.name)))
+    function updateTrelloBoard(board) {
+        const lists = board.lists
 
-			const total = storyPoints.reduce((a,b)=>a + b, 0)
-			const columnName = list.name.replace(/ \(Total SP: \d+\)/, '')
+        lists.forEach(async(list)=>{
+            if (list.closed || !COLUMN_REGEX.some(p=>p.test(list.name)))
+                return
 
-			console.debug("Updating list: ", columnName, list)
+            const cards = await this.lists.get(`${list.id}/cards`)
+            const storyPoints = cards.map(card=>Number(getSPFromCardName(card.name)))
 
-			setColumnName(list.id, `${columnName} (Total SP: ${total})`)
-		})
+            const total = storyPoints.reduce((a,b)=>a + b, 0)
+            const columnName = list.name.replace(/ \(Total SP: \d+\)/, '')
 
-	})
+            console.debug("Updating list: ", columnName, list)
+
+            setColumnName(list.id, `${columnName} (Total SP: ${total})`)
+        })
+    }
+
+    Trello.board.update = ()=>updateTrelloBoard.call(Trello, Trello.board)
+
+    // Fetch the current board and update 
+    Trello.board.get().then((board)=>{ Trello.board.update() })
 }())
+
