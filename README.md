@@ -1,2 +1,2 @@
-# trello-utils
-Trello tools and utilities to make your life easier
+# trello-controller
+Trello controller to make our lives easier
