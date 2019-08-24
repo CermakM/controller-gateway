@@ -1,0 +1,23 @@
+{
+  "name": "trello-controller",
+  "version": "0.1.0",
+  "description": "Trello controller to make our lives easier",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CermakM/trello-controller.git"
+  },
+  "keywords": [
+    "trello",
+	"controller"
+  ],
+  "author": "Marek Cermak <macermak@redhat.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CermakM/trello-controller/issues"
+  },
+  "homepage": "https://github.com/CermakM/trello-controller#readme"
+}
