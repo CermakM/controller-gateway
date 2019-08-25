@@ -12,17 +12,17 @@
   ],
   "rules": {
     "semi": ["warn", "always"],
-    "quotes": ["warn", "double"],
+    "quotes": ["warn", "single"],
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/explicit-member-accessibility": {
+    "@typescript-eslint/explicit-member-accessibility": ["error", {
       "accessibility": "explicit",
       "overrides": {
         "constructors": "off"
       }
-    },
+    }],
     "@typescript-eslint/no-explicit-any": "off",
-    "@typescript-eslint/no-parameter-properties": {
+    "@typescript-eslint/no-parameter-properties": ["error", {
       "allows": ["public", "public readonly"]
-    }
+    }]
   }
 }
