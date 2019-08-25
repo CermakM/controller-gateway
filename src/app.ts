@@ -1,31 +1,23 @@
-import express, { Request, Response } from 'express';
-import process from 'process';
-import _ from 'lodash';
+import express, { Request, Response } from 'express'
+import process from 'process'
+import _ from 'lodash'
 
-// Controllers (route handlers)
-import APIController from './controllers/api';
-import TrelloController from './controllers/trello';
+import { Manager } from './manager'
 
-const app  = express();
-
-const apiController    = new APIController();
-const trelloController = new TrelloController();
-
+const app = express()
+const mgr = new Manager() 
 
 // Express configuration
-app.set('PORT', _.get(process.env, 'PORT', 5000));
+app.set('PORT', _.get(process.env, 'PORT', 5000))
 
 // Routes
 app.get('/', (req: Request, res: Response) => {
-    return res.send(null);  // TODO: return the schema
-});
+    return res.status(200).send(null)
+})
 
-app.get('/trello', TrelloController.call);
-app.put('/trello', TrelloController.call);
+// Controllers (route handlers)
+for ( const path of mgr.list() ) {
+    app.use(path, mgr.get(path))
+}
 
-/**
- * API view routes
- */
-app.get('/api', apiController.call);
-
-export default app;
+export default app

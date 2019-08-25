@@ -1,18 +1,19 @@
-import { Request, Response } from 'express';
-import Controller from './base';
+import { Request, Response } from 'express'
+import express from 'express'
+
+import { Manager } from '../manager'
+
+
+const router = express.Router()
 
 /**
  * GET /api
  * List of API examples.
  */
-export class APIController extends Controller {
-    constructor() { super('api'); }
+router.get('/', (req: Request, res: Response) => {
+    res.render('api/index', {
+        title: 'API Examples'
+    })
+})
 
-    public get(req: Request, res: Response) {
-        res.render('api/index', {
-            title: 'API Examples'
-        });
-    }
-}
-
-export default APIController;
+export function register(manager: Manager) { manager.add('/api', router) }

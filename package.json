@@ -5,20 +5,14 @@
   "main": "dist/server.js",
   "scripts": {
     "lint": "tsc --noEmit && eslint \"**/*.ts\" --quiet --fix",
-
     "build": "npm run build-ts && npm run lint",
     "build-sass": "node-sass src/public/css/main.scss dist/public/css/main.css",
     "build-ts": "tsc",
-
     "debug": "npm run build && npm run watch-debug",
-
     "start": "npm run serve",
-
     "serve": "node dist/server.js",
     "serve-debug": "nodemon --inspect dist/server.js",
-
     "test": "jest --forceExit --coverage --verbose",
-
     "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
     "watch-node": "nodemon dist/server.js",
     "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\"",
@@ -63,6 +57,7 @@
     "pug": "^2.0.4",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
+    "require-all": "^3.0.0",
     "winston": "^2.4.2"
   },
   "devDependencies": {
@@ -93,6 +88,8 @@
     "@types/request": "^2.48.1",
     "@types/shelljs": "^0.8.5",
     "@types/supertest": "^2.0.7",
+    "@types/webpack": "^4.39.1",
+    "@types/webpack-env": "^1.14.0",
     "@types/winston": "^2.3.9",
     "@typescript-eslint/eslint-plugin": "^1.12.0",
     "@typescript-eslint/parser": "^1.12.0",
@@ -106,7 +103,12 @@
     "shelljs": "^0.8.3",
     "supertest": "^4.0.2",
     "ts-jest": "^24.0.2",
+    "ts-loader": "^6.0.4",
     "ts-node": "^8.3.0",
+    "tsconfig-paths": "^3.8.0",
     "typescript": "^3.5.2"
+  },
+  "_moduleAliases": {
+    "@": "dist"
   }
 }
