@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import express from 'express'
 
-import { Manager } from '../manager'
+import { Manager } from '../../manager'
 
 
 const router = express.Router()

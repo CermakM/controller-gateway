@@ -1,21 +1,19 @@
 import { Router } from 'express'
 import _ from 'lodash'
 
-interface Controller {
-    register(manager: Manager): void;
-}
+import controllers from './controllers/controllers'
 
 export class Manager {
 
     constructor() {
-        // discover this.controllers
-        const controllers: Controller[] = require('require-all')({
-            dirname: __dirname + '/controllers/',
-            recursive: true,
-        })
-
+        // register the controllers
         for (const ctrl of Object.values(controllers)) {
-            ctrl.register(this)
+            if (_.has(ctrl, 'register')) {
+                // the controller should be registered to the manager
+                ctrl.register(this)
+            } else {
+                throw Error('The controller does not implement `register` method')
+            }
         }
     }
 

@@ -7,7 +7,7 @@
     "lint": "tsc --noEmit && eslint \"**/*.ts\" --quiet --fix",
     "build": "npm run build-ts && npm run lint",
     "build-sass": "node-sass src/public/css/main.scss dist/public/css/main.css",
-    "build-ts": "tsc",
+    "build-ts": "rm -rf dist/ && tsc",
     "debug": "npm run build && npm run watch-debug",
     "start": "npm run serve",
     "serve": "node dist/server.js",
@@ -108,6 +108,7 @@
     "tsconfig-paths": "^3.8.0",
     "typescript": "^3.5.2"
   },
+  "types": "src/controllers/controller.d.ts",
   "_moduleAliases": {
     "@": "dist"
   }
