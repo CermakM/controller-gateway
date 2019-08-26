@@ -1,7 +1,10 @@
 import crypto from 'crypto'
+
 import express, { Request, Response, NextFunction } from 'express'
+import HTTPStatus from 'http-status-codes'
 
 import { Manager } from '../../manager'
+import { Client } from './client'
 
 function base64Digest(s: string, secret: crypto.BinaryLike): string {
     return crypto.createHmac('sha1', secret).update(s).digest('base64')
@@ -16,6 +19,7 @@ function verify(req: Request, secret: crypto.BinaryLike, callbackURL: string): b
 }
 
 const router = express.Router()
+const trello: Client = new Client()
 
 // Middleware
 router.use((req: Request, res: Response, next: NextFunction) => {
@@ -32,6 +36,32 @@ router.head('/', (req: Request, res: Response) => {
     res.status(200).send()
 })
 
+router.get('/auth', (req: Request, res: Response) => {
+    const p = trello.authorized()
+
+    p
+        .then( () => {
+            res.status(HTTPStatus.OK).send('Authorized')
+        })
+        .catch( (err: any) => {  // TODO: Create type for the RequestErrorResponse
+            console.error(err)
+            res.status(err.statusCode).send(err.response.statusMessage)
+        })
+})
+
+router.get('/whoami', (req: Request, res: Response) => {
+    const p = trello.authorized()
+
+    p
+        .then( (payload: any) => {
+            res.status(HTTPStatus.OK).send(payload)
+        })
+        .catch( (err: any) => {  // TODO: Create type for the RequestErrorResponse
+            console.error(err)
+            res.status(err.statusCode).send(err.response.statusMessage)
+        })
+})
+
 // Routes
 router.post('/', (req: Request, res: Response) => {
     const { action, model } = req.body
@@ -43,12 +73,12 @@ router.post('/', (req: Request, res: Response) => {
 
     const contentType: string | undefined = req.header('Content-Type')
     if (contentType != 'application/json') {
-        res.status(403).send(
+        res.status(HTTPStatus.BAD_REQUEST).send(
             `Incorrect or unexpected content type: ${contentType}`
         )
     }
 
-    res.status(201).end()
+    res.status(HTTPStatus.CREATED).end()
 })
 
 export function register(manager: Manager) { manager.add('/trello', router) }
