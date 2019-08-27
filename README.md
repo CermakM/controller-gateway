@@ -1,2 +1,2 @@
-# trello-controller
-Trello controller to make our lives easier
+# controller-gateway
+To make our lives easier
