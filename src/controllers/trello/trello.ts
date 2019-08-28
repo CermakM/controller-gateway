@@ -219,7 +219,7 @@ export class Reconciler {
                     console.log(`[${model.name}] Running executor: `, plugin)
                     vm.runInNewContext(executor, context, options)
                 })
-                .catch((err) => console.error(`[${model.name}]`, errresponse.toJSON()))
+                .catch((err) => console.error(`[${model.name}]`, err.response.toJSON()))
         }
     }
 }

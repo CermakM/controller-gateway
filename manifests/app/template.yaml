@@ -72,6 +72,16 @@ objects:
           env: 
           - name: PORT
             value: '5000'
+          - name: "TRELLO_API_KEY"
+            valueFrom:
+              secretKeyRef:
+                name: 'trello-secret'
+                key: 'api_key'
+          - name: "TRELLO_TOKEN"
+            valueFrom:
+              secretKeyRef:
+                name: 'trello-secret'
+                key: 'token'
           ports:
           - containerPort: 5000
             protocol: TCP
