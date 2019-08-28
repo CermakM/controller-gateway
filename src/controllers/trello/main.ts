@@ -23,9 +23,12 @@ const trello: Client = new Client()
 
 // TODO: provide an endpoint for this
 const plugins = [
-    'https://raw.githubusercontent.com/CermakM/controller-gateway/master/plugins/counter.js'
+    '/plugins/counter.js'
 ]
 const trelloReconciler: Reconciler = new Reconciler(trello, plugins)
+
+// Plugins
+router.use('/plugins', express.static('plugins'))
 
 // Middleware
 router.use((req: Request, res: Response, next: NextFunction) => {
@@ -70,13 +73,6 @@ router.get('/whoami', (req: Request, res: Response) => {
 
 // Routes
 router.post('/', (req: Request, res: Response) => {
-    const { action, model } = req.body
-    const user = action.memberCreator
-
-    console.log(
-        `[${model.name}] action ' ${action.type}' by user '@${user.username}' detected`
-    )
-
     const contentType: string | undefined = req.header('Content-Type')
     if (contentType != 'application/json') {
         res.status(HTTPStatus.BAD_REQUEST).send(
@@ -84,7 +80,8 @@ router.post('/', (req: Request, res: Response) => {
         )
     }
 
-    trelloReconciler.reconcile(model, action)
+    // Reconcile the request with available plugins
+    trelloReconciler.reconcile(req)
 
     res.status(HTTPStatus.CREATED).end()
 })

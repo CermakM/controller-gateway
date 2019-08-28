@@ -2,14 +2,14 @@
  * Trello client interface to authorize users and manage a Trello board
  */
 
-import fetch, { Response}   from 'node-fetch'
+import { Request } from 'express';
+import fetch, { Response} from 'node-fetch'
 import process from 'process'
+
 import request = require('request-promise-native')
 import vm      = require('vm')
 
-
 import _ from 'lodash'
-
 import * as v1 from './interfaces'
 
 const apiVersion   = '1'
@@ -176,10 +176,17 @@ export class Reconciler {
         this._cl = client
     }
 
-    public reconcile(model: v1.Model, action: v1.Action) {
+    public reconcile(req: Request) {
         // TODO: use logging library for easier logging (i.e, with field)
         // Create new context for the plugin executor
-        console.log(`[${model.name}] Reconciling.`)
+        const { action, model } : v1.Schema = req.body
+        const user = action.memberCreator
+
+        console.log(
+            `[${model.name}] action ' ${action.type}' by user '@${user.username}' detected`)
+        console.log(
+            `[${model.name}] Reconciling.`)
+
         if (this.plugins.length <= 0) {
             console.log(`[${model.name}] No executors found. Nothing to do.`)
             return
@@ -188,7 +195,7 @@ export class Reconciler {
             env: process.env,
             model: model,
             action: action,
-            Trello: this._cl,  // user gets the initialized client for convenience
+            Trello: this._cl,   // user gets the initialized client for convenience
         })
         const options: vm.RunningScriptOptions = {
             timeout: 1000,
@@ -197,13 +204,22 @@ export class Reconciler {
         // TODO: get plugins registered for the action type
         // TODO: fetch and cache the plugins in constructor instead of doing it here
         for (const plugin of this.plugins) {
-            fetch(plugin)
+            const url = `${req.protocol}://${req.hostname}:${req.app.get('PORT')}${req.baseUrl}${plugin}`
+
+            context.console = {
+                // user should be able to share logs
+                log  : (...args) => console.log(`[${plugin}]`, ...args),
+                error: (...args) => console.error(`[${plugin}]`, ...args),
+            }
+
+            console.debug('Fetching plugin from url: ', url)
+            fetch(url)
                 .then(res => res.text())
                 .then(executor => {
                     console.log(`[${model.name}] Running executor: `, plugin)
                     vm.runInNewContext(executor, context, options)
                 })
+                .catch((err) => console.error(`[${model.name}]`, errresponse.toJSON()))
         }
     }
-
 }
