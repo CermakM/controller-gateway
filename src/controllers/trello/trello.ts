@@ -116,7 +116,13 @@ export class Reconciler {
     }
 
     public reconcile(model: v1.Model, action: v1.Action) {
+        // TODO: use logging library for easier logging (i.e, with field)
         // Create new context for the plugin executor
+        console.log(`[${model.name}] Reconciling.`)
+        if (this.plugins.length <= 0) {
+            console.log(`[${model.name}] No executors found. Nothing to do.`)
+            return
+        }
         const context = vm.createContext({
             model: model,
             action: action,
@@ -132,7 +138,7 @@ export class Reconciler {
             fetch(plugin)
                 .then(res => res.text())
                 .then(executor => {
-                    console.log('Running executor: ', plugin)
+                    console.log(`[${model.name}] Running executor: `, plugin)
                     vm.runInNewContext(executor, context, options)
                 })
         }
