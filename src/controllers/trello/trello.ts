@@ -16,7 +16,7 @@ const apiVersion   = '1'
 const apiEndpoint  = 'https://api.trello.com'
 const authEndpoint = 'https://auth.trello.com'
 
-export const ENV_TRELLO_APIKEY = 'TRELLO_APIKEY'
+export const ENV_TRELLO_APIKEY = 'TRELLO_API_KEY'
 export const ENV_TRELLO_TOKEN  = 'TRELLO_TOKEN'
 
 export interface AuthorizationScope {
