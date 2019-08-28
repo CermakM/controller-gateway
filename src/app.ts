@@ -12,7 +12,7 @@ app.set('PORT', _.get(process.env, 'PORT', 5000))
 
 // Routes
 app.get('/', (req: Request, res: Response) => {
-    return res.status(200).send(null)
+    return res.status(200).send('This API is NOT meant for the human eye.')
 })
 
 // Controllers (route handlers)

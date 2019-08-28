@@ -1,7 +1,7 @@
 import { Manager } from '../manager'
 
 import * as apiController from './api/api'
-import * as trelloController from './trello/trello'
+import * as trelloController from './trello/main'
 
 export interface Controller {
     register(manager: Manager): void;
