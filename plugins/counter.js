@@ -8,7 +8,7 @@
  *      List of regex pattern for columns containing cards with story points to count
  */
 
-const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progress.*/]
+let COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progress.*/]
 
 (function() {
 

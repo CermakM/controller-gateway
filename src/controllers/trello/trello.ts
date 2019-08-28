@@ -33,9 +33,42 @@ export interface AuthorizationOptions {
     type       : string;
 }
 
+class Collection {
+    private readonly _cl: Client
+    constructor(client: Client, public readonly name: string) {
+        this._cl = client
+    }
+
+    /**
+     * Issue a 'GET' call to the API and retrieve information about the collection
+    
+     * .rest(method, path, params, success, error)
+     * .rest(method, path, success, error)
+    
+     * @param id      - The collection ID
+     * @param params  - Optional.  A hash of values to include in the querystring
+     *   (e.g. { filter: "open", fields: "name,desc" })
+     * @param body    - The request body
+     * @param headers - The request headers
+     *
+     * @memberof TrelloClient
+     */
+    public get(id: string, ...args): request.RequestPromise {
+        return this._cl.get(`${this.name}/${id}`, ...args)
+    }
+}
+
 export class Client {
     private _key  : string | undefined
     private _token: string | undefined
+
+    public readonly actions: Collection
+    public readonly cards: Collection
+    public readonly checklist: Collection
+    public readonly boards: Collection
+    public readonly lists: Collection
+    public readonly members: Collection
+    public readonly organizations: Collection
 
     constructor(key?: string, token?: string) {
         // Try to get the values from env
@@ -47,6 +80,14 @@ export class Client {
         }
         this._key = key
         this._token = token
+
+        this.actions       = new Collection(this, 'actions')
+        this.boards        = new Collection(this, 'boards')
+        this.cards         = new Collection(this, 'cards')
+        this.checklist     = new Collection(this, 'Collection')
+        this.lists         = new Collection(this, 'lists')
+        this.members       = new Collection(this, 'members')
+        this.organizations = new Collection(this, 'organizations')
     }
 
     public get key(): string | undefined {
@@ -105,6 +146,26 @@ export class Client {
         console.debug('Sending request', options)
 
         return request(options)
+    }
+
+    // Syntactic sugar for 'GET' request
+    public get(...args): request.RequestPromise {
+        return this.rest('GET', ...args)
+    }
+
+    // Syntactic sugar for 'POST' request
+    public post(...args): request.RequestPromise {
+        return this.rest('POST', ...args)
+    }
+
+    // Syntactic sugar for 'PUT' request
+    public put(...args): request.RequestPromise {
+        return this.rest('PUT', ...args)
+    }
+
+    // Syntactic sugar for 'DELETE' request
+    public delete(...args): request.RequestPromise {
+        return this.rest('DELETE', ...args)
     }
 }
 
