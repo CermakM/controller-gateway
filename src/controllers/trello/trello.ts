@@ -2,7 +2,7 @@
  * Trello client interface to authorize users and manage a Trello board
  */
 
-import { Request } from 'express';
+import { Request } from 'express'
 import fetch, { Response} from 'node-fetch'
 import process from 'process'
 
@@ -53,7 +53,7 @@ class Collection {
      *
      * @memberof TrelloClient
      */
-    public get(id: string, ...args): request.RequestPromise {
+    public get(id: string, ...args: any[]): request.RequestPromise {
         return this._cl.get(`${this.name}/${id}`, ...args)
     }
 }
@@ -98,8 +98,8 @@ export class Client {
     }
 
     public authorized(): Promise<any> {
-        return this.rest('get', '/members/me')
-            .then( r => {
+        return this.rest('GET', '/members/me')
+            .then( (r: v1.Member) => {
                 return _.pick(
                     r, 'id', 'username', 'fullname', 'email', 'memberType'
                 )
@@ -122,7 +122,7 @@ export class Client {
      * @memberof TrelloClient
      */
     public rest(
-        method  : 'get' | 'post' | 'put' | 'delete',
+        method  : 'GET' | 'POST' | 'PUT' | 'DELETE',
         path    : string,
         params? : any,
         body?   : any,
@@ -149,23 +149,23 @@ export class Client {
     }
 
     // Syntactic sugar for 'GET' request
-    public get(...args): request.RequestPromise {
-        return this.rest('GET', ...args)
+    public get(path: string, ...args: any[]): request.RequestPromise {
+        return this.rest('GET', path, ...args)
     }
 
     // Syntactic sugar for 'POST' request
-    public post(...args): request.RequestPromise {
-        return this.rest('POST', ...args)
+    public post(path: string, ...args: any[]): request.RequestPromise {
+        return this.rest('POST', path, ...args)
     }
 
     // Syntactic sugar for 'PUT' request
-    public put(...args): request.RequestPromise {
-        return this.rest('PUT', ...args)
+    public put(path: string, ...args: any[]): request.RequestPromise {
+        return this.rest('PUT', path, ...args)
     }
 
     // Syntactic sugar for 'DELETE' request
-    public delete(...args): request.RequestPromise {
-        return this.rest('DELETE', ...args)
+    public delete(path: string, ...args: any[]): request.RequestPromise {
+        return this.rest('DELETE', path, ...args)
     }
 }
 
@@ -179,7 +179,7 @@ export class Reconciler {
     public reconcile(req: Request) {
         // TODO: use logging library for easier logging (i.e, with field)
         // Create new context for the plugin executor
-        const { action, model } : v1.Schema = req.body
+        const { action, model } : v1.Webhook = req.body
         const user = action.memberCreator
 
         console.log(
@@ -208,8 +208,8 @@ export class Reconciler {
 
             context.console = {
                 // user should be able to share logs
-                log  : (...args) => console.log(`[${plugin}]`, ...args),
-                error: (...args) => console.error(`[${plugin}]`, ...args),
+                log  : (...args: any[]) => console.log(`[${plugin}]`, ...args),
+                error: (...args: any[]) => console.error(`[${plugin}]`, ...args),
             }
 
             console.debug('Fetching plugin from url: ', url)
