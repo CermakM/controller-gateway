@@ -1,0 +1,69 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: ultrahook-template
+metadata:
+  annotations:
+    description: Application template to build the ultrahook sidecar container
+    tags: ultrahook,webhook,sidecar
+  name: ultrahook-template
+objects:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: ${APPLICATION_NAME}-configmap
+    labels:
+      app: ${APPLICATION_NAME}
+  data:
+    ULTRAHOOK_API_KEY: "${ULTRAHOOK_API_KEY}"
+    ULTRAHOOK_SUBDOMAIN: "${ULTRAHOOK_SUBDOMAIN}"
+    ULTRAHOOK_TARGET_HOST: "${ULTRAHOOK_TARGET_HOST}"
+    ULTRAHOOK_TARGET_PORT: "${ULTRAHOOK_TARGET_PORT}"
+
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ${APPLICATION_NAME}
+    labels:
+      app: ${APPLICATION_NAME}
+
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APPLICATION_NAME}:latest
+    runPolicy: Serial
+    source:
+      dockerfile: |
+        FROM ruby:2.5-slim
+        RUN gem install ultrahook
+
+        CMD ultrahook \
+          $ULTRAHOOK_SUBDOMAIN $ULTRAHOOK_TARGET_HOST:$ULTRAHOOK_TARGET_PORT
+      type: Dockerfile
+    strategy:
+      type: Docker
+
+parameters:
+- description: Application name
+  name: APPLICATION_NAME
+  value: ultrahook
+- description: Ultrahook API key
+  name: ULTRAHOOK_API_KEY
+  required: true
+- description: Ultrahook subdomain
+  name: ULTRAHOOK_SUBDOMAIN
+  required: true
+- description: Ultrahook host
+  name: ULTRAHOOK_TARGET_HOST
+  value: localhost
+- description: Ultrahook port
+  name: ULTRAHOOK_TARGET_PORT
+  value: '5000'
