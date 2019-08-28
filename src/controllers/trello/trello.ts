@@ -124,6 +124,7 @@ export class Reconciler {
             return
         }
         const context = vm.createContext({
+            env: process.env,
             model: model,
             action: action,
             Trello: this._cl,  // user gets the initialized client for convenience
