@@ -44,7 +44,7 @@ router.get('/auth', (req: Request, res: Response) => {
             res.status(HTTPStatus.OK).send('Authorized')
         })
         .catch( (err: any) => {  // TODO: Create type for the RequestErrorResponse
-            console.error(err)
+            console.error(err.response.toJSON())
             res.status(err.statusCode).send(err.response.statusMessage)
         })
 })
@@ -57,7 +57,7 @@ router.get('/whoami', (req: Request, res: Response) => {
             res.status(HTTPStatus.OK).send(payload)
         })
         .catch( (err: any) => {  // TODO: Create type for the RequestErrorResponse
-            console.error(err)
+            console.error(err.response.toJSON())
             res.status(err.statusCode).send(err.response.statusMessage)
         })
 })
