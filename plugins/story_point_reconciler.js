@@ -1,8 +1,7 @@
 /**
- * This is a Trello plugin for counting story points from card names.
+ * This is a Trello plugin for reconciling story points in Trello lists.
  * 
  * Usage:
- *   1) Have SP set in card title as such '(<SP>) <title>'
  *   2) Set `COLUMN_REGEX` global variable
  *
  *      List of regex pattern for columns containing cards with story points to count
