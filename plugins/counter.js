@@ -10,7 +10,7 @@
 
 let COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progress.*/];
 
-(function() {
+(function () {
 
     function getSPFromCardName(card) {
         const p = /\((\d+)\)/
@@ -28,21 +28,33 @@ let COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progr
     }
 
     function updateTrelloLists(lists) {
-        lists.forEach(async(list)=>{
-            if (list.closed || !COLUMN_REGEX.some(p=>p.test(list.name))) {
+        lists.forEach(async (list) => {
+            if (list.closed || !COLUMN_REGEX.some(p => p.test(list.name))) {
                 console.log(`The list ${list.name} does not match required pattern. Skipping.`)
                 return
             }
 
             const cards = await Trello.lists.get(`${list.id}/cards`)
-            const storyPoints = cards.map(card=>Number(getSPFromCardName(card.name)))
 
-            const total = storyPoints.reduce((a,b)=>a + b, 0)
+            const storyPointsArray = cards.map(card => Number(getSPFromCardName(card.name)))
+            const storyPointsTotal = storyPointsArray.reduce((a, b) => a + b, 0)
+
+            const storyPointsCurrent = list.name.match(/\d+/)
+            if (storyPointsCurrent != null) {
+                try {
+                    if (Number(storyPointsCurrent[0]) === storyPointsTotal) {
+                        console.log(`The list ${list.name} is up to date. Skipping.`)
+                        return
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+
             const columnName = list.name.replace(/ \(Total SP: \d+\)/, '')
-
             console.log('Updating list: ', columnName, list)
 
-            setColumnName(list.id, `${columnName} (Total SP: ${total})`)
+            setColumnName(list.id, `${columnName} (Total SP: ${storyPointsTotal})`)
         })
     }
 
