@@ -37,8 +37,12 @@ all: build
 build:
 	npm build
 
-build-openshift: deploy
+.PHONY: build-openshift
+build-openshift: deploy build-gateway-openshift build-ultrahook-openshift
+
+build-gateway-openshift:
 	oc -n ${NAMESPACE} start-build ${PACKAGE}
+build-ultrahook-openshift:
 	oc -n ${NAMESPACE} start-build ultrahook
 
 .PHONY: deploy
@@ -73,4 +77,5 @@ deploy-gateway:
 	oc -n ${NAMESPACE} apply   -f manifests/app/template.yaml
 	oc -n ${NAMESPACE} process -f manifests/app/template.yaml \
 		-p APPLICATION_NAME=${PACKAGE} \
+		-p GITHUB_REF=${GITHUB_REF} \
 		| oc -n ${NAMESPACE} apply -f -
