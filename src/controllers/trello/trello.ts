@@ -10,7 +10,7 @@ import request = require('request-promise-native')
 import vm      = require('vm')
 
 import _ from 'lodash'
-import * as v1 from './interfaces'
+import * as v1 from '../../api/trello'
 
 const apiVersion   = '1'
 const apiEndpoint  = 'https://api.trello.com'
