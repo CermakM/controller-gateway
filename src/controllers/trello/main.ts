@@ -32,7 +32,7 @@ router.use('/plugins', express.static('plugins'))
 
 // Middleware
 router.use((req: Request, res: Response, next: NextFunction) => {
-    console.debug(`[${req.method}] New request: `, req.url)
+    console.debug(`[${req.method}] New request: `, req.baseUrl)
 
     // TODO: verify(req);
     next()
