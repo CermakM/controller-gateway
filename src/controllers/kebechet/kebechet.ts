@@ -11,8 +11,8 @@ import k8s = require('@kubernetes/client-node')
 
 import * as k8sutil from '../../common/k8sutil'
 import * as webhookv1 from '../../api/github/webhook'
+
 import { Job } from './resource'
-import { V1JobStatus } from '@kubernetes/client-node';
 
 
 // Kubernetes client
