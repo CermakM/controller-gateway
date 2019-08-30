@@ -218,8 +218,10 @@ export class Reconciler {
                 .then(executor => {
                     console.log(`[${model.name}] Running executor: `, plugin)
                     vm.runInNewContext(executor, context, options)
+
+                    console.log(`[${model.name}] Successfully reconciled.`)
                 })
-                .catch((err) => console.error(`[${model.name}]`, err.response.toJSON()))
+                .catch((err) => console.error(`[${model.name}] Error:`, err.response.toJSON()))
         }
     }
 }

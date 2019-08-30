@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/CermakM/controller-gateway#readme",
   "dependencies": {
+    "@kubernetes/client-node": "^0.10.2",
     "@types/http-errors": "^1.6.2",
     "acorn": "^7.0.0",
     "async": "^3.0.1",
