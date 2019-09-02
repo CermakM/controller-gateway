@@ -31,6 +31,7 @@ export class Reconciler {
     public reconcile(req: Request) {
         console.log('[Kebechet] Reconciling.')
 
+        // TODO: This can potentially be a GitLab, split the solution
         const event: string | undefined = req.header('X-GitHub-Event')
         if (_.isUndefined(event)) {
             console.error('Invalid request.', req)
@@ -62,6 +63,11 @@ export class Reconciler {
         job.spec.template.spec.containers[0].env.push({
             name : 'KEBECHET_REPO_URL',
             value: repository.url,
+        })  
+        // @ts-ignore
+        job.spec.template.spec.containers[0].env.push({
+            name : 'KEBECHET_SERVICE_NAME',
+            value: 'github',  // TODO: This should be infered from the request
         })  
 
         return this.createJob(job)
