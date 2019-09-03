@@ -3,7 +3,7 @@
  * 
  */
 
-const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Backlog.*/, /^Next.*/];
+const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Backlog.*/, /^Next.*/, /^New.*/];
 // label IDs
 const LABEL_NEEDS_BACKLOG_REFINEMENT = '5a05c4a2e4c4d6248e26b696';
 
@@ -46,7 +46,7 @@ const LABEL_NEEDS_BACKLOG_REFINEMENT = '5a05c4a2e4c4d6248e26b696';
                     continue
                 }
 
-                console.log(`Collecting cards for culmun '${list.name}'.`)
+                console.log(`Collecting cards for culumn '${list.name}'.`)
                 await Trello.get('/lists/' + list.id + '/cards')
                     .then(arr => cards.push(...arr))
             }
