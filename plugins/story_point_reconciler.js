@@ -7,9 +7,10 @@
  *      List of regex pattern for columns containing cards with story points to count
  */
 
-let COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progress.*/];
-
 (async function () {
+
+    const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progress.*/];
+
 
     function getSPFromCardName(card) {
         const p = /\((\d+)\)/

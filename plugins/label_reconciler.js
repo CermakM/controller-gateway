@@ -3,11 +3,12 @@
  * 
  */
 
-const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Backlog.*/, /^Next.*/, /^New.*/];
-// label IDs
-const LABEL_NEEDS_BACKLOG_REFINEMENT = '5a05c4a2e4c4d6248e26b696';
-
 (async function () {
+
+    const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Backlog.*/, /^Next.*/, /^New.*/];
+    // label IDs
+    const LABEL_NEEDS_BACKLOG_REFINEMENT = '5a05c4a2e4c4d6248e26b696';
+
 
     function assignLabels(card) {
         // (?) in the title of the card -> needs-backlog-refinement
