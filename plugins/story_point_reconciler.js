@@ -9,28 +9,19 @@
 
 (async function () {
 
-    const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progress.*/];
-
-
-    function getSPFromCardName(card) {
+    function getSPFromCardName(name) {
         const p = /\((\d+)\)/
-        const m = card.match(p)
+        const m = name.match(p)
         if (m)
             return Number(m[1])
 
         return 0
     }
 
-    function setColumnName(id, name) {
-        Trello.put(`/lists/${id}`, {
-            name: name
-        })
-    }
-
-    function updateTrelloLists(lists) {
-        lists.forEach(async (list) => {
-            if (list.closed || !COLUMN_REGEX.some(p => p.test(list.name))) {
-                return
+    async function updateTrelloLists(lists) {
+        for (const list of lists) {
+            if (list.closed || !modelConfig.columns.some(p => RegExp(p).test(list.name))) {
+                continue
             }
 
             const cards = await Trello.lists.get(`${list.id}/cards`)
@@ -42,8 +33,8 @@
             if (storyPointsCurrent != null) {
                 try {
                     if (Number(storyPointsCurrent[0]) === storyPointsTotal) {
-                        console.log(`The list ${list.name} is up to date. Skipping.`)
-                        return
+                        console.log(`The list '${list.name}' is up to date. Skipping.`)
+                        continue
                     }
                 } catch {
                     // ignore
@@ -53,14 +44,23 @@
             const columnName = list.name.replace(/ \(Total SP: \d+\)/, '')
             console.log('Updating list: ', columnName, list)
 
-            setColumnName(list.id, `${columnName} (Total SP: ${storyPointsTotal})`)
-        })
+            await Trello.put(`/lists/${list.id}`, {
+                name: `${columnName} (Total SP: ${storyPointsTotal})`
+            })
+        }
+    }
+
+    // Configuration for the current Trello model
+    const modelConfig = config.rules.find((r) => r.model.name === model.name)
+    if (modelConfig == undefined) {
+        console.error(`Configuration was not found for model '${model.name}'`)
+        return
     }
 
     const url = '/boards/' + model.id + '/lists'
     await Trello.get(url)
-        .then((lists) => {
-            updateTrelloLists(lists)
+        .then(async (lists) => {
+            await updateTrelloLists(lists)
         })
         .catch(err => console.error(err.response.toJSON()))
 }())

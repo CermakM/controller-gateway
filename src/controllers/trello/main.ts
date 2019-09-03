@@ -1,32 +1,32 @@
-import crypto from 'crypto'
+// import crypto from 'crypto'
 
 import express, { Request, Response, NextFunction } from 'express'
 import HTTPStatus from 'http-status-codes'
 
+import _ from 'lodash'
+
+import { config, Controller } from '../config';
 import { Manager } from '../../manager'
-import { Client, Reconciler } from './trello'
+import { Client, ControllerConfig, Reconciler } from './trello'
 
-function base64Digest(s: string, secret: crypto.BinaryLike): string {
-    return crypto.createHmac('sha1', secret).update(s).digest('base64')
-}
+// function base64Digest(s: string, secret: crypto.BinaryLike): string {
+//     return crypto.createHmac('sha1', secret).update(s).digest('base64')
+// }
 
-function verify(req: Request, secret: crypto.BinaryLike, callbackURL: string): boolean {
-    const content = JSON.stringify(req.body) + callbackURL
-    const doubleHash = base64Digest(content, secret)
-    const headerHash = req.headers['x-trello-webhook']
+// function verify(req: Request, secret: crypto.BinaryLike, callbackURL: string): boolean {
+//     const content = JSON.stringify(req.body) + callbackURL
+//     const doubleHash = base64Digest(content, secret)
+//     const headerHash = req.headers['x-trello-webhook']
 
-    return doubleHash == headerHash
-}
+//     return doubleHash == headerHash
+// }
 
 const router = express.Router()
-const trello: Client = new Client()
 
-// TODO: provide an endpoint for this
-const plugins = [
-    '/plugins/story_point_reconciler.js',
-    '/plugins/label_reconciler.js',
-]
-const trelloReconciler: Reconciler = new Reconciler(trello, plugins)
+const ctrl: Controller = config.controllers.find(ctrl => ctrl.name == 'trello') as Controller
+
+const trello: Client = new Client()
+const trelloReconciler: Reconciler = new Reconciler(trello, ctrl.config as ControllerConfig)
 
 // Plugins
 router.use('/plugins', express.static('plugins'))

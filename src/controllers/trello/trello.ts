@@ -143,8 +143,6 @@ export class Client {
             json: true
         }
 
-        console.debug('[Trello] Sending request', options)
-
         return request(options)
     }
 
@@ -169,14 +167,43 @@ export class Client {
     }
 }
 
-export class Reconciler {
-    private readonly _cl: Client
+export interface ControllerConfig {
+    plugins: Plugin[];
+}
 
-    constructor(client: Client, public plugins: string[]) {
-        this._cl = client
+export interface Plugin {
+    name  : string | undefined;
+    url   : string;
+    config: { rules: ModelConfig[] };
+}
+
+export interface ModelConfig {
+    model  : Model;
+    labels : Label[];
+    columns: string[];
+}
+
+export interface Model {
+    name: string;
+}
+
+export interface Label {
+    id     : string;
+    name   : string | undefined;
+    selector: string;
+}
+
+
+export class Reconciler {
+    private readonly _cl    : Client
+    public  readonly plugins: Plugin[]
+
+    constructor(client: Client, public readonly config: ControllerConfig) {
+        this._cl = client 
+        this.plugins = config.plugins
     }
 
-    public reconcile(req: Request) {
+    public async reconcile(req: Request) {
         // TODO: use logging library for easier logging (i.e, with field)
         // Create new context for the plugin executor
         const { action, model } : v1.Webhook = req.body
@@ -191,37 +218,40 @@ export class Reconciler {
             console.log(`[${model.name}] No executors found. Nothing to do.`)
             return
         }
-        const context = vm.createContext({
-            env: process.env,
-            model: model,
-            action: action,
-            Trello: this._cl,   // user gets the initialized client for convenience
-        })
-        const options: vm.RunningScriptOptions = {
-            timeout: 1000,
-            displayErrors: true
-        }
         // TODO: get plugins registered for the action type
         // TODO: fetch and cache the plugins in constructor instead of doing it here
         for (const plugin of this.plugins) {
-            const url = `${req.protocol}://${req.hostname}:${req.app.get('PORT')}${req.baseUrl}${plugin}`
-
+            const options: vm.RunningScriptOptions = {
+                timeout: 1000,
+                displayErrors: true
+            }
+            const context = vm.createContext({
+                env   : process.env,
+                model : model,
+                action: action,
+                config: plugin.config,
+                Trello: this._cl,      // user gets the initialized client for convenience
+            })
             context.console = {
-                // user should be able to share logs
-                log  : (...args: any[]) => console.log(`[${plugin}]`, ...args),
-                error: (...args: any[]) => console.error(`[${plugin}]`, ...args),
+                // plugin should be able to share logs
+                log  : (...args: any[]) => console.log(`\t[${plugin.name}]`, ...args),
+                error: (...args: any[]) => console.error(`\t[${plugin.name}]`, ...args),
             }
 
-            console.debug('Fetching plugin from url: ', url)
-            fetch(url)
+            const url = `${req.protocol}://${req.hostname}:${req.app.get('PORT')}${req.baseUrl}${plugin.url}`
+
+            console.debug(`[${model.name}] Fetching plugin from url: `, url)
+            await fetch(url)
                 .then(res => res.text())
                 .then(async executor => {
-                    console.log(`[${model.name}] Running executor: `, plugin)
+                    console.log(`[${model.name}] Running executor: `, plugin.name)
 
                     return await vm.runInNewContext(executor, context, options)
                 })
-                .then(() => console.log(`[${model.name}] Successfully reconciled.`))
+                .then(() => console.log(`\t[${plugin.name}] Finished.`))
                 .catch((err) => console.error(`[${model.name}] Error:`, err.response ? err.response.toJSON() : err))
         }
+
+        console.log(`[${model.name}] Successfully reconciled.`)
     }
 }

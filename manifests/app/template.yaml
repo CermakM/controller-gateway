@@ -82,6 +82,11 @@ objects:
               secretKeyRef:
                 name: 'trello-secret'
                 key: 'token'
+          - name: "CONTROLLER_CONFIG"
+            valueFrom:
+              configMapKeyRef:
+                name: 'controller-gateway-configmap'
+                key: 'config'
           ports:
           - containerPort: 5000
             protocol: TCP

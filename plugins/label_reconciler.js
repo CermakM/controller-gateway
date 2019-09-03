@@ -5,19 +5,16 @@
 
 (async function () {
 
-    const COLUMN_REGEX = env['TRELLO_COLUMN_REGEX'] || [/^Backlog.*/, /^Next.*/, /^New.*/];
-    // label IDs
-    const LABEL_NEEDS_BACKLOG_REFINEMENT = '5a05c4a2e4c4d6248e26b696';
-
-
-    function assignLabels(card) {
-        // (?) in the title of the card -> needs-backlog-refinement
-        const labels = []
-        if ( card.name.search(/\(\?\)/) !== -1) {
-            labels.push(LABEL_NEEDS_BACKLOG_REFINEMENT)
+    function assignLabels(card, labels) {
+        const assignedLabels = []
+        for (const label of labels) {
+            const re = new RegExp(label.selector)
+            if ( card.name.search(re) !== -1) {
+                assignedLabels.push(label.id)
+            }
         }
 
-        return labels
+        return assignedLabels
     }
 
     function hasLabel(card, labelID) {
@@ -27,18 +24,18 @@
         return card.idLabels.includes(labelID)
     }
 
-    function updateTrelloCards(cards) {
+    function updateTrelloCards(cards, labels) {
         let failed  = 0,
             skipped = 0,
             updated = 0;
-        cards.forEach(async (card) => {
-            assignLabels(card).forEach( (labelID) => {
+        cards.forEach((card) => {
+            assignLabels(card, labels).forEach( async (labelID) => {
                 if (hasLabel(card, labelID)) {
                     skipped += 1
                     return  // nothing to be done
                 }
 
-                Trello.post(`/cards/${card.id}/idLabels`, {value: labelID})
+                await Trello.post(`/cards/${card.id}/idLabels`, {value: labelID})
                     .then(() => updated += 1)
                     .catch((err) => {
                         console.error('Error updating card:', err)
@@ -46,14 +43,22 @@
                     })
             })
         })
-        console.log(`Updated ${updated} cards, ${skipped} skipped and ${failed} failed.`)
+
+        console.log(`Success. Updated ${updated} cards, ${skipped} skipped and ${failed} failed.`)
+    }
+
+    // Configuration for the current Trello model
+    const modelConfig = config.rules.find((r) => r.model.name === model.name)
+    if (modelConfig == undefined) {
+        console.error(`Configuration was not found for model '${model.name}'`)
+        return
     }
 
     await Trello.get('/boards/' + model.id + '/lists/open')
         .then(async (lists) => {
             const cards = []
             for (const list of lists) {
-                if (!COLUMN_REGEX.some(p => p.test(list.name))) {
+                if (!modelConfig.columns.some(p => RegExp(p).test(list.name))) {
                     continue
                 }
 
@@ -66,7 +71,7 @@
         })
         .then((cards) => {
             console.log(`Updating ${cards.length} Trello cards`)
-            updateTrelloCards(cards)
+            updateTrelloCards(cards, modelConfig.labels)
         })
         .catch(err => console.error(err.response ? err.response.toJSON() : err))
 }())
