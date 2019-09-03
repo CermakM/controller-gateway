@@ -143,7 +143,7 @@ export class Client {
             json: true
         }
 
-        console.debug('Sending request', options)
+        console.debug('[Trello] Sending request', options)
 
         return request(options)
     }
@@ -215,13 +215,13 @@ export class Reconciler {
             console.debug('Fetching plugin from url: ', url)
             fetch(url)
                 .then(res => res.text())
-                .then(executor => {
+                .then(async executor => {
                     console.log(`[${model.name}] Running executor: `, plugin)
-                    vm.runInNewContext(executor, context, options)
 
-                    console.log(`[${model.name}] Successfully reconciled.`)
+                    return await vm.runInNewContext(executor, context, options)
                 })
-                .catch((err) => console.error(`[${model.name}] Error:`, err.response.toJSON()))
+                .then(() => console.log(`[${model.name}] Successfully reconciled.`))
+                .catch((err) => console.error(`[${model.name}] Error:`, err.response ? err.response.toJSON() : err))
         }
     }
 }

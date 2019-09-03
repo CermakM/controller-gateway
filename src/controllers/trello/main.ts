@@ -23,7 +23,8 @@ const trello: Client = new Client()
 
 // TODO: provide an endpoint for this
 const plugins = [
-    '/plugins/counter.js'
+    '/plugins/label_reconciler.js',
+    '/plugins/story_point_reconciler.js',
 ]
 const trelloReconciler: Reconciler = new Reconciler(trello, plugins)
 

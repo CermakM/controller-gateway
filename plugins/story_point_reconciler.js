@@ -9,7 +9,7 @@
 
 let COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progress.*/];
 
-(function () {
+(async function () {
 
     function getSPFromCardName(card) {
         const p = /\((\d+)\)/
@@ -58,7 +58,7 @@ let COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Completed.*/, /^Next.*/, /^In Progr
     }
 
     const url = '/boards/' + model.id + '/lists'
-    Trello.get(url)
+    await Trello.get(url)
         .then((lists) => {
             updateTrelloLists(lists)
         })
