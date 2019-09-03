@@ -13,7 +13,7 @@
     function assignLabels(card) {
         // (?) in the title of the card -> needs-backlog-refinement
         const labels = []
-        if ( card.name.search(/\(?\)/) ) {
+        if ( card.name.search(/\(\?\)/) !== -1) {
             labels.push(LABEL_NEEDS_BACKLOG_REFINEMENT)
         }
 
