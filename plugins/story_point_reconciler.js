@@ -30,7 +30,6 @@
     function updateTrelloLists(lists) {
         lists.forEach(async (list) => {
             if (list.closed || !COLUMN_REGEX.some(p => p.test(list.name))) {
-                console.log(`The list ${list.name} does not match required pattern. Skipping.`)
                 return
             }
 

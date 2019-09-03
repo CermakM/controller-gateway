@@ -5,7 +5,7 @@
 
 (async function () {
 
-    const COLUMN_REGEX = env['COLUMN_REGEX'] || [/^Backlog.*/, /^Next.*/, /^New.*/];
+    const COLUMN_REGEX = env['TRELLO_COLUMN_REGEX'] || [/^Backlog.*/, /^Next.*/, /^New.*/];
     // label IDs
     const LABEL_NEEDS_BACKLOG_REFINEMENT = '5a05c4a2e4c4d6248e26b696';
 
@@ -28,14 +28,25 @@
     }
 
     function updateTrelloCards(cards) {
+        let failed  = 0,
+            skipped = 0,
+            updated = 0;
         cards.forEach(async (card) => {
             assignLabels(card).forEach( (labelID) => {
-                if (hasLabel(card, labelID))
+                if (hasLabel(card, labelID)) {
+                    skipped += 1
                     return  // nothing to be done
+                }
 
                 Trello.post(`/cards/${card.id}/idLabels`, {value: labelID})
+                    .then(() => updated += 1)
+                    .catch((err) => {
+                        console.error('Error updating card:', err)
+                        failed += 1
+                    })
             })
         })
+        console.log(`Updated ${updated} cards, ${skipped} skipped and ${failed} failed.`)
     }
 
     await Trello.get('/boards/' + model.id + '/lists/open')
@@ -43,7 +54,6 @@
             const cards = []
             for (const list of lists) {
                 if (!COLUMN_REGEX.some(p => p.test(list.name))) {
-                    console.log(`The list ${list.name} does not match required pattern. Skipping.`)
                     continue
                 }
 
