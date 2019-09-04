@@ -31,17 +31,15 @@
 
     function updateTrelloCards(cards, labels) {
         let failed  = 0,
-            skipped = 0,
-            updated = 0;
+            changed = 0;
         cards.forEach((card) => {
             assignLabels(card, labels).forEach( async (labelID) => {
                 if (hasLabel(card, labelID)) {
-                    skipped += 1
                     return  // nothing to be done
                 }
 
                 await Trello.post(`/cards/${card.id}/idLabels`, {value: labelID})
-                    .then(() => updated += 1)
+                    .then(() => changed += 1)
                     .catch((err) => {
                         console.error('Error updating card:', err)
                         failed += 1
@@ -49,7 +47,8 @@
             })
         })
 
-        console.log(`Success. Updated ${updated} cards, ${skipped} skipped and ${failed} failed.`)
+        console.log('Success.')
+        console.log(`Changed ${changed} cards, ${cards.length - changed - failed} skipped and ${failed} failed.`)
     }
 
     // Configuration for the current Trello model
