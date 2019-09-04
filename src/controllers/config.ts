@@ -1,7 +1,12 @@
 import process from 'process'
 import yaml from 'js-yaml'
+import fs from 'fs';
 
 const ENV_CONTROLLER_CONFIG = 'CONTROLLER_CONFIG'
+const ENV_CONTROLLER_CONFIG_LOCAL = 'CONTROLLER_CONFIG_LOCAL'  // primarily for debug purposes
+const ENV_CONTROLLER_CONFIG_PATH  = 'CONTROLLER_CONFIG_PATH'
+
+const DEFAULT_CONTROLLER_CONFIG_PATH  = '.env'
 
 export interface Config {
     controllers: Controller[];
@@ -23,9 +28,16 @@ function isValid(config: Config): config is Config {
 }
 
 function parseConfig(): Config {
-    const rawConfig: string = process.env[ENV_CONTROLLER_CONFIG] || ''
+    let rawConfig: string
+
+    if (process.env[ENV_CONTROLLER_CONFIG_LOCAL] == 'true') {
+        const configPath: string = process.env[ENV_CONTROLLER_CONFIG_PATH] || DEFAULT_CONTROLLER_CONFIG_PATH
+        rawConfig = fs.readFileSync(configPath, 'utf8')
+    } else {
+        rawConfig = process.env[ENV_CONTROLLER_CONFIG] || ''
+    }
     if (rawConfig.length <= 0) {
-        throw Error('Unable to parse the config.')
+        throw Error('Empty config file.')
     }
 
     const config: Config = yaml.safeLoad(rawConfig)
