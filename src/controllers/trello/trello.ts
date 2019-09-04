@@ -210,7 +210,7 @@ export class Reconciler {
         const user = action.memberCreator
 
         console.log(
-            `[${model.name}] action ' ${action.type}' by user '@${user.username}' detected`)
+            `[${model.name}] action '${action.type}' by user '@${user.username}' detected`)
         console.log(
             `[${model.name}] Reconciling.`)
 

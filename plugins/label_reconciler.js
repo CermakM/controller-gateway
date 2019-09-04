@@ -8,6 +8,11 @@
     function assignLabels(card, labels) {
         const assignedLabels = []
         for (const label of labels) {
+            // make sure the selector is defined, otherwise it matches ALL
+            if (label.selector == undefined) {
+                throw Error('Undefined label selector.')
+            }
+
             const re = new RegExp(label.selector)
             if ( card.name.search(re) !== -1) {
                 assignedLabels.push(label.id)
