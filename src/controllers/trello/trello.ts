@@ -238,7 +238,7 @@ export class Reconciler {
                 error: (...args: any[]) => console.error(`\t[${plugin.name}]`, ...args),
             }
 
-            const url = `${req.protocol}://${req.hostname}:${req.app.get('PORT')}${req.baseUrl}${plugin.url}`
+            const url = `${req.protocol}://${req.hostname}${req.baseUrl}${plugin.url}`
 
             console.debug(`[${model.name}] Fetching plugin from url: `, url)
             await fetch(url)
