@@ -7,147 +7,188 @@ metadata:
   annotations:
     description: Application template to build the controller gateway
     tags: api,controller,gateway
+
 objects:
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    name: ${APPLICATION_NAME}
-    labels:
-      app: ${APPLICATION_NAME}
-
-- apiVersion: build.openshift.io/v1
-  kind: BuildConfig
-  metadata:
-    name: ${APPLICATION_NAME}
-    labels:
-      app: ${APPLICATION_NAME}
-  spec:
-    source:
-      type: "Git"
-      git:
-        uri: "https://github.com/CermakM/controller-gateway"
-        ref: "${GITHUB_REF}"
-    strategy:
-      type: "Docker"
-    output:
-      to:
-        kind: ImageStreamTag
-        name: ${APPLICATION_NAME}:latest
-    triggers:
-      - type: "GitHub"
-        github:
-          secretReference:
-            name: "github-s2i-build"
-      - type: "ImageChange"
-
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    labels:
-      app: ${APPLICATION_NAME}
-    name: ${APPLICATION_NAME}
-  spec:
-    replicas: 1
-    selector:
-      app: ${APPLICATION_NAME}
-      deploymentconfig: ${APPLICATION_NAME}
-    strategy:
-      resources: 
-        intervalSeconds: 1
-        maxSurge: 25%
-        maxUnavailable: 25%
-        timeoutSeconds: 600
-        updatePeriodSeconds: 1
-      type: Rolling
-    template:
-      metadata:
-        labels:
-          app: ${APPLICATION_NAME}
-          deploymentconfig: ${APPLICATION_NAME}
-      spec:
-        containers:
-        - name: main
-          image: ${APPLICATION_NAME}:latest
-          imagePullPolicy: Always
-          env: 
-          - name: PORT
-            value: '5000'
-          - name: "TRELLO_API_KEY"
-            valueFrom:
-              secretKeyRef:
-                name: 'trello-secret'
-                key: 'api_key'
-          - name: "TRELLO_TOKEN"
-            valueFrom:
-              secretKeyRef:
-                name: 'trello-secret'
-                key: 'token'
-          - name: "CONTROLLER_CONFIG"
-            valueFrom:
-              configMapKeyRef:
-                name: 'controller-gateway-configmap'
-                key: 'config'
-          ports:
-          - containerPort: 5000
-            protocol: TCP
-        - name: ultrahook
-          image: ultrahook:latest
-          imagePullPolicy: Always
-          envFrom:
-            - configMapRef:
-                name: ultrahook-configmap
-        restartPolicy: Always
-    triggers:
-    - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - main
-        from:
-          kind: ImageStreamTag
-          name: ${APPLICATION_NAME}:latest
-      type: ImageChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - ultrahook
-        from:
-          kind: ImageStreamTag
-          name: ultrahook:latest
-      type: ImageChange  
-
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: ${APPLICATION_NAME}
-    labels:
-      app: ${APPLICATION_NAME}
-  spec:
-    selector:
-      app: ${APPLICATION_NAME}
-    ports:
-    - port: 5000
-      protocol: TCP
-      targetPort: 5000
-    sessionAffinity: None
-
-- apiVersion: v1
-  kind: Route
-  metadata:
-    name: ${APPLICATION_NAME}
-    annotations:
-      kubernetes.io/tls-acme: "true"
-    labels:
-      app: ${APPLICATION_NAME}
-  spec:
-    to:
-      kind: Service
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
       name: ${APPLICATION_NAME}
+      labels:
+        app: ${APPLICATION_NAME}
+
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: "${APPLICATION_NAME}-docker"
+      labels:
+        app: "${APPLICATION_NAME}"
+    spec:
+      source:
+        type: "Git"
+        git:
+          uri: "${GITHUB_URL}"
+          ref: "${GITHUB_REF}"
+      strategy:
+        type: "Docker"
+      output:
+        to:
+          kind: ImageStreamTag
+          name: "${APPLICATION_NAME}:latest"
+      triggers:
+        - type: "GitHub"
+          github:
+            secretReference:
+              name: "github-s2i-build"
+        - type: "ImageChange"
+
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      labels:
+        app: "${APPLICATION_NAME}"
+      name: "${APPLICATION_NAME}-s2i"
+    spec:
+      output:
+        to:
+          kind: ImageStreamTag
+          name: "${APPLICATION_NAME}:latest"
+      source:
+        type: "Git"
+        git:
+          uri: "${GITHUB_URL}"
+          ref: "${GITHUB_REF}"
+      strategy:
+        type: Source
+        sourceStrategy:
+          from:
+            kind: ImageStreamTag
+            name: "nodejs:10"
+            namespace: openshift
+      triggers:
+        - type: "GitHub"
+          github:
+            secretReference:
+              name: "github-s2i-build"
+        - type: "ImageChange"
+        - type: ConfigChange
+
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: ${APPLICATION_NAME}
+      name: ${APPLICATION_NAME}
+    spec:
+      replicas: 1
+      selector:
+        app: ${APPLICATION_NAME}
+        deploymentconfig: ${APPLICATION_NAME}
+      strategy:
+        resources:
+          intervalSeconds: 1
+          maxSurge: 25%
+          maxUnavailable: 25%
+          timeoutSeconds: 600
+          updatePeriodSeconds: 1
+        type: Rolling
+      template:
+        metadata:
+          labels:
+            app: ${APPLICATION_NAME}
+            deploymentconfig: ${APPLICATION_NAME}
+        spec:
+          containers:
+            - name: main
+              image: ${APPLICATION_NAME}:latest
+              imagePullPolicy: Always
+              env:
+                - name: PORT
+                  value: "5000"
+                - name: "TRELLO_API_KEY"
+                  valueFrom:
+                    secretKeyRef:
+                      name: "trello-secret"
+                      key: "api_key"
+                - name: "TRELLO_TOKEN"
+                  valueFrom:
+                    secretKeyRef:
+                      name: "trello-secret"
+                      key: "token"
+                - name: "CONTROLLER_CONFIG"
+                  valueFrom:
+                    configMapKeyRef:
+                      name: "controller-gateway-configmap"
+                      key: "config"
+              ports:
+                - containerPort: 5000
+                  protocol: TCP
+            - name: ultrahook
+              image: ultrahook:latest
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: ultrahook-configmap
+          restartPolicy: Always
+      triggers:
+        - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - main
+            from:
+              kind: ImageStreamTag
+              name: ${APPLICATION_NAME}:latest
+          type: ImageChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - ultrahook
+            from:
+              kind: ImageStreamTag
+              name: ultrahook:latest
+          type: ImageChange
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APPLICATION_NAME}
+      labels:
+        app: ${APPLICATION_NAME}
+    spec:
+      selector:
+        app: ${APPLICATION_NAME}
+      ports:
+        - port: 5000
+          protocol: TCP
+          targetPort: 5000
+      sessionAffinity: None
+
+  - apiVersion: v1
+    kind: Route
+    metadata:
+      name: ${APPLICATION_NAME}
+      annotations:
+        kubernetes.io/tls-acme: "true"
+      labels:
+        app: ${APPLICATION_NAME}
+    spec:
+      to:
+        kind: Service
+        name: ${APPLICATION_NAME}
 
 parameters:
-- description: Application name
-  name: APPLICATION_NAME
-  value: controller-gateway
-- description: Git Hub branch or reference
-  name: GITHUB_REF
-  value: "master"
+  - description: Application name
+    name: APPLICATION_NAME
+    value: controller-gateway
+
+  - description: Name of the GitHub repository to be used for the builds
+    displayName: Git Repository
+    required: true
+    name: GITHUB_URL
+    value: "https://github.com/CermakM/controller-gateway"
+
+  - description: Git reference to be used by the builds
+    displayName: Git Reference
+    required: true
+    name: GITHUB_REF
+    value: "master"
